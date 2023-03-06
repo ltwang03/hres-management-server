@@ -1,5 +1,4 @@
 const express = require("express");
-const cors = require("cors");
 const asyncHandler = require("express-async-handler");
 const { PORT } = require("./config");
 const loaders = require("./loaders");
