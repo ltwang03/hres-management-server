@@ -1,8 +1,7 @@
 const jsonwebtoken = require("jsonwebtoken");
 const User = require("../../models/user.model");
 const handleError = require("../../utils/handleError");
-const { SECRET_KEY, EXPIRES } = require("../../config");
-const bcrypt = require("bcrypt");
+const { SECRET_KEY } = require("../../config");
 
 class AuthMiddleware {
   async CheckAuth(req, res, next) {

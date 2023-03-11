@@ -21,22 +21,36 @@ class AuthController {
         return next(
           new handleError({}, "Tài Khoản đã tồn tại trong hệ thống", 500)
         );
-      // mã hóa mật khẩu khi đăng ký thành công
-      const hashPassword = await bcrypt.hash(password, 10);
-      const newUser = new User({
-        restaurantName,
-        userName,
-        password: hashPassword,
-        email,
-        role,
+      }
+      // kiểm tra nhà hàng có trong danh sách
+      const restaurantInfo = await Restaurant.findOne({
+        name: convertRestaurantID,
       });
-      await newUser.save();
-      // trả về msg thành công
-      res.json({
-        status: "success",
-        message: "Tạo tài khoản thành công !",
-      });
-      next();
+      if (restaurantInfo) {
+        next(new handleError({}, "Nhà hàng đã tồn tại trong hệ thống", 422));
+      } else {
+        // mã hóa mật khẩu khi đăng ký thành công
+        const hashPassword = await bcrypt.hash(password, 10);
+        const newUser = await new User({
+          restaurantID: convertRestaurantID,
+          userName,
+          password: hashPassword,
+          role,
+        });
+        await newUser.save();
+
+        const newRestaurant = await new Restaurant({
+          name: restaurantID,
+          user: [userName],
+        });
+        await newRestaurant.save();
+        // trả về msg thành công
+        res.json({
+          status: "success",
+          message: "Tạo tài khoản thành công !",
+        });
+        next();
+      }
     } catch (e) {
       next(
         res.json({
