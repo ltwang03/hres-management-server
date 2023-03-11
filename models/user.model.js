@@ -1,29 +1,29 @@
 const mongoose = require("mongoose");
-const { genSalt, hash } = require("bcrypt");
 
 const UserSchema = new mongoose.Schema(
   {
-    restaurantName: {
+    restaurantID: {
       type: String,
+      ref: "Restaurant",
       unique: true,
       lowercase: true,
+      trim: true,
+      required: true,
     },
     userName: {
       type: String,
       unique: true,
+      required: true,
     },
     password: {
       type: String,
       minLength: 6,
-    },
-    email: {
-      type: String,
-      trim: true,
-      lowercase: true,
+      required: true,
     },
     role: {
       type: String,
-      default: "manager",
+      enum: ["manager", "staff"],
+      required: true,
     },
   },
   {

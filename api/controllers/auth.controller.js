@@ -1,20 +1,23 @@
 const User = require("../../models/user.model");
+const Restaurant = require("../../models/restaurant.model");
 const jsonwebtoken = require("jsonwebtoken");
 const { SECRET_KEY, EXPIRES } = require("../../config");
 const handleError = require("../../utils/handleError");
 const bcrypt = require("bcrypt");
 
 class AuthController {
-  async register(req, res, next) {
+  async registerManager(req, res, next) {
     //lấy dũ liệu từ input
-    const { restaurantName, userName, password, email, role } = req.body;
+    const { restaurantID, userName, password, role } = req.body;
+    console.log(restaurantID);
     try {
       //check dữ liệu nhập vào đầy đủ hay không
-      if (!restaurantName || !userName || !password || !email || !role)
+      if (!restaurantID || !userName || !password || !role)
         return next(new handleError({}, "Vui lòng nhập đầy đủ thông tin", 500));
-      const checkUniqueUser = await User.findOne({ userName });
-      // check dữ liệu có trong database hay chưa
-      if (checkUniqueUser)
+      const convertRestaurantID = restaurantID.split(" ").join("");
+      const checkUniqueUser = await User.findOne({ $or: [{ userName }] });
+      // kiểm tra đã có tài khoản trùng chưa
+      if (checkUniqueUser) {
         return next(
           new handleError({}, "Tài Khoản đã tồn tại trong hệ thống", 500)
         );
@@ -36,18 +39,19 @@ class AuthController {
       next();
     } catch (e) {
       next(
-        new handleError(
-          e,
-          "Có lỗi xảy ra trong quá trình đăng ký tài khoản",
-          500
-        )
+        res.json({
+          status: "failed",
+          message: "có lỗi xảy ra trong quá trình đăng ký tài khoản",
+          error: e,
+        })
       );
     }
   }
+
   async login(req, res, next) {
-    const { restaurantName, userName, password } = req.body;
+    const { restaurantID, userName, password } = req.body;
     try {
-      if (!restaurantName || !userName || !password)
+      if (!restaurantID || !userName || !password)
         return next(new handleError({}, "Vui lòng nhập đầy đủ thông tin", 500));
       const infoUser = await User.findOne({ userName });
       if (!infoUser)
@@ -60,7 +64,7 @@ class AuthController {
       const token = jsonwebtoken.sign(
         {
           userName: infoUser.userName,
-          restaurantName: infoUser.restaurantName,
+          restaurantID: infoUser.restaurantID,
         },
         SECRET_KEY,
         { expiresIn: EXPIRES }
@@ -76,5 +80,4 @@ class AuthController {
     }
   }
 }
-
 module.exports = new AuthController();
