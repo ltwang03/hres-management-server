@@ -9,7 +9,6 @@ class AuthController {
   async registerManager(req, res, next) {
     //lấy dũ liệu từ input
     const { restaurantID, userName, password, role } = req.body;
-    console.log(restaurantID);
     try {
       //check dữ liệu nhập vào đầy đủ hay không
       if (!restaurantID || !userName || !password || !role)
@@ -31,17 +30,17 @@ class AuthController {
       } else {
         // mã hóa mật khẩu khi đăng ký thành công
         const hashPassword = await bcrypt.hash(password, 10);
-        const newUser = await new User({
+        const newUser = new User({
           restaurantID: convertRestaurantID,
           userName,
           password: hashPassword,
-          role,
+          role: "manager",
         });
         await newUser.save();
 
-        const newRestaurant = await new Restaurant({
+        const newRestaurant = new Restaurant({
           name: restaurantID,
-          user: [userName],
+          user: userName,
         });
         await newRestaurant.save();
         // trả về msg thành công
@@ -61,6 +60,53 @@ class AuthController {
       );
     }
   }
+  async registerStaff(req, res, next) {
+    const { restaurantID, userName, password, role } = req.body;
+    try {
+      if (!restaurantID || !userName || !password || !role) {
+        next(new handleError({}, "Vui lòng nhập đầy đủ thông tin!", 500));
+      }
+      const userInfo = await User.findOne({ userName });
+      if (userInfo) {
+        return next(
+          new handleError({}, "Tài khoản đã tồn tại trong hệ thống", 422)
+        );
+      }
+      const restaurantInfo = await Restaurant.findOne({ name: restaurantID });
+      if (!restaurantInfo) {
+        return next(
+          new handleError(
+            {},
+            "nhà hàng không tồn tại trong hệ thống vui lòng nhập chính xác tên nhà hàng!",
+            422
+          )
+        );
+      }
+      const hashPassword = await bcrypt.hash(password, 10);
+      const newUser = new User({
+        restaurantID,
+        userName,
+        password: hashPassword,
+        role: "staff",
+      });
+      await newUser.save();
+      await Restaurant.updateOne(
+        { name: restaurantID },
+        {
+          $push: {
+            user: userName,
+          },
+        }
+      );
+      res.json({
+        status: "Successfully",
+        message: "Đăng Ký Thành Công",
+      });
+    } catch (e) {
+      console.log(e);
+      next(new handleError({ e }, "có lỗi trong quá trình đăng ký", 500));
+    }
+  }
 
   async login(req, res, next) {
     const { restaurantID, userName, password } = req.body;
@@ -72,6 +118,12 @@ class AuthController {
         return next(
           new handleError({}, "tài khoản không tồn tại trong hệ thống!", 500)
         );
+      const restaurantInfo = await Restaurant.findOne({ name: restaurantID });
+      if (!restaurantInfo) {
+        return next(
+          new handleError({}, "ID Nhà Hàng không có trong hệ thống", 422)
+        );
+      }
       const comparePassword = await bcrypt.compare(password, infoUser.password);
       if (!comparePassword)
         return next(new handleError({}, "sai tài khoản hoặc mật khẩu!", 500));
@@ -86,6 +138,7 @@ class AuthController {
       res.json({
         status: "success",
         message: "Đăng nhập thành công",
+        role: infoUser.role,
         userName,
         token,
       });
