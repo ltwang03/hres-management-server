@@ -5,7 +5,6 @@ const UserSchema = new mongoose.Schema(
     restaurantID: {
       type: String,
       ref: "Restaurant",
-      unique: true,
       lowercase: true,
       trim: true,
       required: true,
