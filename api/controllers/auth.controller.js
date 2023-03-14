@@ -135,7 +135,7 @@ class AuthController {
         SECRET_KEY,
         { expiresIn: EXPIRES }
       );
-      res.json({
+      return res.json({
         status: "success",
         message: "Đăng nhập thành công",
         role: infoUser.role,
@@ -143,7 +143,9 @@ class AuthController {
         token,
       });
     } catch (error) {
-      next(new handleError(error, "có lỗi trong quá trình đăng nhập", 500));
+      return next(
+        new handleError(error, "có lỗi trong quá trình đăng nhập", 500)
+      );
     }
   }
 }
