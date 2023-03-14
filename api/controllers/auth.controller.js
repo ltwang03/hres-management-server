@@ -143,15 +143,7 @@ class AuthController {
         token,
       });
     } catch (error) {
-      return next(
-        next(
-          res.json({
-            error,
-            status: "failure",
-            message: "có lỗi trong quá trình đăng nhập!",
-          })
-        )
-      );
+      console.error(error);
     }
   }
 }
