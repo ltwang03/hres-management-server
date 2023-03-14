@@ -144,7 +144,13 @@ class AuthController {
       });
     } catch (error) {
       return next(
-        new handleError(error, "có lỗi trong quá trình đăng nhập", 500)
+        next(
+          res.json({
+            error,
+            status: "failure",
+            message: "có lỗi trong quá trình đăng nhập!",
+          })
+        )
       );
     }
   }
