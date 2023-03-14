@@ -143,7 +143,7 @@ class AuthController {
         token,
       });
     } catch (error) {
-      console.error(error);
+      next(new handleError(error, "Có vấn đề xảy ra khi đăng nhập", 500));
     }
   }
 }
