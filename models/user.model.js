@@ -24,6 +24,16 @@ const UserSchema = new mongoose.Schema(
       enum: ["manager", "staff"],
       required: true,
     },
+    fullName: {
+      type: String,
+      required: true,
+    },
+    phoneNumber: {
+      type: Number,
+      required: true,
+      minLength: 10,
+      maxLength: 11,
+    },
   },
   {
     timestamps: true,

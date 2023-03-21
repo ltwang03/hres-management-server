@@ -8,13 +8,23 @@ const bcrypt = require("bcrypt");
 class AuthController {
   async registerManager(req, res, next) {
     //lấy dũ liệu từ input
-    const { restaurantID, userName, password, role } = req.body;
+    const { restaurantID, userName, password, role, phoneNumber, fullName } =
+      req.body;
     try {
       //check dữ liệu nhập vào đầy đủ hay không
-      if (!restaurantID || !userName || !password || !role)
+      if (
+        !restaurantID ||
+        !userName ||
+        !password ||
+        !role ||
+        !phoneNumber ||
+        !fullName
+      )
         return next(new handleError({}, "Vui lòng nhập đầy đủ thông tin", 500));
       const convertRestaurantID = restaurantID.split(" ").join("");
-      const checkUniqueUser = await User.findOne({ $or: [{ userName }] });
+      const checkUniqueUser = await User.findOne({
+        $or: [{ userName }, { phoneNumber }],
+      });
       // kiểm tra đã có tài khoản trùng chưa
       if (checkUniqueUser) {
         return next(
@@ -32,7 +42,9 @@ class AuthController {
         const hashPassword = await bcrypt.hash(password, 10);
         const newUser = new User({
           restaurantID: convertRestaurantID,
+          fullName,
           userName,
+          phoneNumber,
           password: hashPassword,
           role: "manager",
         });
@@ -40,7 +52,7 @@ class AuthController {
 
         const newRestaurant = new Restaurant({
           name: restaurantID,
-          user: userName,
+          user: fullName,
         });
         await newRestaurant.save();
         // trả về msg thành công
@@ -61,12 +73,22 @@ class AuthController {
     }
   }
   async registerStaff(req, res, next) {
-    const { restaurantID, userName, password, role } = req.body;
+    const { restaurantID, userName, password, role, phoneNumber, fullName } =
+      req.body;
     try {
-      if (!restaurantID || !userName || !password || !role) {
+      if (
+        !restaurantID ||
+        !userName ||
+        !password ||
+        !role ||
+        !phoneNumber ||
+        !fullName
+      ) {
         next(new handleError({}, "Vui lòng nhập đầy đủ thông tin!", 500));
       }
-      const userInfo = await User.findOne({ userName });
+      const userInfo = await User.findOne({
+        $or: [{ userName }, { phoneNumber }],
+      });
       if (userInfo) {
         return next(
           new handleError({}, "Tài khoản đã tồn tại trong hệ thống", 422)
@@ -88,13 +110,15 @@ class AuthController {
         userName,
         password: hashPassword,
         role: "staff",
+        phoneNumber,
+        fullName,
       });
       await newUser.save();
       await Restaurant.updateOne(
         { name: restaurantID },
         {
           $push: {
-            user: userName,
+            user: fullName,
           },
         }
       );
@@ -144,6 +168,34 @@ class AuthController {
       });
     } catch (error) {
       next(new handleError(error, "Có vấn đề xảy ra khi đăng nhập", 500));
+    }
+  }
+  async getUserRestaurant(req, res, next) {
+    const errorHandled = new handleError(
+      {},
+      "có lỗi xảy ra với server vui lòng thử lại sau!",
+      500
+    );
+    try {
+      const { infoUser } = res.locals;
+      if (!infoUser) next(errorHandled);
+      const restaurantInfo = await Restaurant.find({
+        name: infoUser.restaurantID,
+      });
+      if (!restaurantInfo) next(errorHandled);
+      // console.log(infoUser);
+      res.json({
+        status: "success",
+        user: restaurantInfo[0]?.user,
+      });
+    } catch (e) {
+      next(
+        new handleError(
+          e,
+          "Có vấn đề xảy ra với server vui lòng thử lại sau!",
+          500
+        )
+      );
     }
   }
 }
