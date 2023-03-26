@@ -49,10 +49,12 @@ class AuthController {
           role: "manager",
         });
         await newUser.save();
-
         const newRestaurant = new Restaurant({
           name: restaurantID,
-          user: fullName,
+          user: {
+            fullName,
+            phoneNumber,
+          },
         });
         await newRestaurant.save();
         // trả về msg thành công
@@ -63,13 +65,7 @@ class AuthController {
         next();
       }
     } catch (e) {
-      next(
-        res.json({
-          status: "failed",
-          message: "có lỗi xảy ra trong quá trình đăng ký tài khoản",
-          error: e,
-        })
-      );
+      next(new handleError(e, "có lỗi trong quá trình đăng ký", 500));
     }
   }
   async registerStaff(req, res, next) {
@@ -118,7 +114,10 @@ class AuthController {
         { name: restaurantID },
         {
           $push: {
-            user: fullName,
+            user: {
+              fullName,
+              phoneNumber,
+            },
           },
         }
       );
