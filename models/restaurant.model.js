@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const moment = require("moment-timezone");
 
 const restaurantSchema = new mongoose.Schema(
   {
@@ -18,6 +17,7 @@ const restaurantSchema = new mongoose.Schema(
     user: {
       type: [
         {
+          userName: { type: String, unique: true },
           fullName: { type: String },
           phoneNumber: { type: Number },
         },

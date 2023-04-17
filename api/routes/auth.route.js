@@ -13,5 +13,11 @@ router.get(
   AuthMiddleWare.CheckAuth,
   AuthController.getUserRestaurant
 );
+router.get("/get/profile", AuthMiddleWare.CheckAuth, AuthController.getProfile);
+router.put(
+  "/edit/profile",
+  AuthMiddleWare.CheckAuth,
+  AuthController.editProfile
+);
 
 module.exports = router;

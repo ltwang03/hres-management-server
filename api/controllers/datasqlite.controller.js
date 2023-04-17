@@ -1,8 +1,7 @@
-const User = require("../../models/user.model");
 const Restaurant = require("../../models/restaurant.model");
 const handleError = require("../../utils/handleError");
 
-class datasqliteController {
+class dataSqliteController {
   async updateData(req, res, next) {
     const { message, dataFood } = req.body;
     const { infoUser } = res.locals;
@@ -22,4 +21,4 @@ class datasqliteController {
   }
 }
 
-module.exports = new datasqliteController();
+module.exports = new dataSqliteController();
