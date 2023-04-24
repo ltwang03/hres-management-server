@@ -27,7 +27,15 @@ const restaurantSchema = new mongoose.Schema(
       type: [],
     },
     food: {
-      type: [],
+      type: [
+        {
+          resourceID: { type: String, unique: true },
+          name: { type: String },
+          category: { type: String },
+          describe: { type: String },
+          price: { type: String },
+        },
+      ],
     },
   },
   { timestamps: true }
