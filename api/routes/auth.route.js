@@ -19,5 +19,9 @@ router.put(
   AuthMiddleWare.CheckAuth,
   AuthController.editProfile
 );
-
+router.delete(
+  "/delete/user",
+  AuthMiddleWare.CheckAuth,
+  AuthController.deleteUser
+);
 module.exports = router;

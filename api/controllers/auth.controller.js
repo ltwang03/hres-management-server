@@ -66,7 +66,7 @@ class AuthController {
         next();
       }
     } catch (e) {
-      next(new handleError(e, "có lỗi trong quá trình đăng ký", 500));
+      return next(new handleError(e, "có lỗi xảy ra vui lòng thử lại!!", 500));
     }
   }
   async registerStaff(req, res, next) {
@@ -290,6 +290,32 @@ class AuthController {
       });
     } catch (e) {
       next(new handleError(e, "có lỗi xảy ra với server", 500));
+    }
+  }
+  async deleteUser(req, res, next) {
+    const { infoUser } = res.locals;
+    const { userName } = req.body;
+    try {
+      if (infoUser.role === "staff")
+        return next(new handleError({}, "bạn không đủ quyền để xóa!", 422));
+      if (!userName)
+        return next(new handleError({}, "không thể xóa user!", 409));
+
+      const userRes = await Restaurant.findOneAndUpdate(
+        { name: infoUser.restaurantID },
+        { $pull: { user: { userName: userName } } },
+        { new: true }
+      );
+      if (!userRes) return next(new handleError({}, "có lỗi xảy ra", 409));
+      const user = await User.findOneAndDelete({ userName });
+      if (!user) return next(new handleError({}, "không thể xóa user", 409));
+      res.json({
+        status: "xóa thành công!",
+      });
+    } catch (e) {
+      next(
+        new handleError(e, "có lỗi xảy ra ở server vui lòng thử lại sau!", 500)
+      );
     }
   }
 }
