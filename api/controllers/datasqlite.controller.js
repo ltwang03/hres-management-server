@@ -9,7 +9,14 @@ class dataSqliteController {
     try {
       if (!infoUser)
         return next(new handleError({}, "bạn chưa đăng nhập!", 401));
-      if (!resourceID || !name || !category || !describe || !price)
+      if (
+        !resourceID ||
+        !name ||
+        !category ||
+        !describe ||
+        !price ||
+        !product_id
+      )
         return next(
           new handleError({}, "vui lòng nhập thông tin đầy đủ!", 422)
         );
