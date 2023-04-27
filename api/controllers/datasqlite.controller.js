@@ -3,7 +3,8 @@ const handleError = require("../../utils/handleError");
 
 class dataSqliteController {
   async updateDataFood(req, res, next) {
-    const { resourceID, name, category, describe, price } = req.body;
+    const { product_id, resourceID, name, category, describe, price } =
+      req.body;
     const { infoUser } = res.locals;
     try {
       if (!infoUser)
@@ -25,6 +26,7 @@ class dataSqliteController {
         {
           $push: {
             food: {
+              product_id,
               resourceID,
               name,
               category,
@@ -65,4 +67,3 @@ class dataSqliteController {
 }
 
 module.exports = new dataSqliteController();
-
