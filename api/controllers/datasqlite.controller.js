@@ -2,7 +2,7 @@ const Restaurant = require("../../models/restaurant.model");
 const handleError = require("../../utils/handleError");
 
 class dataSqliteController {
-  async updateDataFood(req, res, next) {
+  async postDataFood(req, res, next) {
     const { product_id, resourceID, name, category, describe, price } =
       req.body;
     const { infoUser } = res.locals;
@@ -100,6 +100,45 @@ class dataSqliteController {
       });
     } catch (e) {
       next(new handleError(e, "đồng bộ dữ liệu không thành công!!", 500));
+    }
+  }
+  async updateDataFood(req, res, next) {
+    const { infoUser } = res.locals;
+    const { product_id, name, price, category, describe } = req.body;
+    try {
+      if (!infoUser)
+        return next(new handleError({}, "không tìm thấy người dùng!", 401));
+      if (!product_id || !name || !price || !category || !describe)
+        return next(
+          new handleError({}, "vui lòng nhập đầy đủ thông tin!!", 422)
+        );
+      if (infoUser.role === "staff")
+        return next(
+          new handleError({}, "bạn không có quyền sữ dụng chức năng này!!", 403)
+        );
+      const updateFood = await Restaurant.findOneAndUpdate(
+        {
+          food: {
+            $elemMatch: { product_id },
+          },
+        },
+        {
+          $set: {
+            "food.$.name": name,
+            "food.$.price": price,
+            "food.$.category": category,
+            "food.$.describe": describe,
+          },
+        },
+        { new: true }
+      );
+      if (!updateFood)
+        return next(new handleError({}, "không thể cập nhật!!", 404));
+      res.json({
+        status: "chỉnh sửa thành công!!",
+      });
+    } catch (e) {
+      next(new handleError(e, "có lỗi xảy ra!!!", 500));
     }
   }
 }
