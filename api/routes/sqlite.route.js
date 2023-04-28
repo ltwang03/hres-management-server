@@ -10,4 +10,9 @@ router.post(
   SqliteController.updateDataFood
 );
 router.get("/get/food", AuthMiddleWare.CheckAuth, SqliteController.getDataFood);
+router.delete(
+  "/delete/food",
+  AuthMiddleWare.CheckAuth,
+  SqliteController.deleteDataFood
+);
 module.exports = router;

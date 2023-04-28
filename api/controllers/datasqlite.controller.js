@@ -71,6 +71,37 @@ class dataSqliteController {
       next(new handleError(e, " có lỗi xảy ra vui lòng thử lại sau!", 500));
     }
   }
+  async deleteDataFood(req, res, next) {
+    const { infoUser } = res.locals;
+    const { product_id } = req.body;
+    try {
+      if (!infoUser)
+        return next(new handleError({}, "không tìm thấy người dùng!", 401));
+      if (!product_id)
+        return next(new handleError({}, "không tìm thấy món ăn để xóa!", 404));
+      if (infoUser.role === "staff")
+        return next(
+          new handleError(
+            {},
+            "bạn không đủ quyền để sử dụng chức năng này!!",
+            403
+          )
+        );
+      const deleteFood = await Restaurant.findOneAndUpdate(
+        {
+          name: infoUser.restaurantID,
+        },
+        { $pull: { food: { product_id } } },
+        { new: true }
+      );
+      if (!deleteFood) return next(new handleError({}, "không thể xóa!!", 404));
+      res.json({
+        status: "xóa thành công!",
+      });
+    } catch (e) {
+      next(new handleError(e, "đồng bộ dữ liệu không thành công!!", 500));
+    }
+  }
 }
 
 module.exports = new dataSqliteController();
