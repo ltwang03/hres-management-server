@@ -131,7 +131,6 @@ class AuthController {
       next(new handleError(e, "có lỗi trong quá trình đăng ký", 500));
     }
   }
-
   async login(req, res, next) {
     const { restaurantID, userName, password } = req.body;
     try {
