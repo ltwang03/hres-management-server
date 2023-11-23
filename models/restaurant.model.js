@@ -38,7 +38,16 @@ const restaurantSchema = new mongoose.Schema(
         },
       ],
     },
+    customer: {
+      type: [
+        {
+          name: { type: String },
+          phone: { type: String },
+        },
+      ],
+    },
   },
   { timestamps: true }
 );
+restaurantSchema.index({ "user.fullName": 1 });
 module.exports = mongoose.model("Restaurant", restaurantSchema);

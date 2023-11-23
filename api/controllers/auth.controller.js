@@ -4,6 +4,7 @@ const jsonwebtoken = require("jsonwebtoken");
 const { SECRET_KEY, EXPIRES } = require("../../config");
 const handleError = require("../../utils/handleError");
 const bcrypt = require("bcrypt");
+const HandleError = require("../../utils/handleError");
 
 class AuthController {
   async registerManager(req, res, next) {
@@ -315,6 +316,123 @@ class AuthController {
       next(
         new handleError(e, "có lỗi xảy ra ở server vui lòng thử lại sau!", 500)
       );
+    }
+  }
+  async createCustomer(req, res, next) {
+    const { infoUser } = res.locals;
+    const { phone, name } = req.body;
+    if (!phone || !name) {
+      return next(new HandleError({}, "vui lòng nhập đầy đủ thông tin", 400));
+    }
+    try {
+      const updateCustomer = await Restaurant.findOneAndUpdate(
+        {
+          name: infoUser.restaurantID,
+        },
+        {
+          $push: {
+            customer: {
+              name,
+              phone,
+            },
+          },
+        }
+      );
+      next(res.status(200).json({ message: "Thêm thành công!" }));
+    } catch (error) {
+      return next(error);
+    }
+  }
+  async deleteCustomer(req, res, next) {
+    const { infoUser } = res.locals;
+    const { id } = req.params;
+    if (!id) {
+      return next(handleError({}, "Vui lòng nhập đầy đủ các trường!"));
+    }
+    try {
+      const deleteCustomer = await Restaurant.findOneAndUpdate(
+        { name: infoUser.restaurantID },
+        { $pull: { customer: { _id: id } } },
+        { new: true }
+      );
+      next(res.status(200).json({ message: "Xóa thành công" }));
+    } catch (error) {
+      return next(error);
+    }
+  }
+  async getAllCustomerByIdRestaurant(req, res, next) {
+    const { infoUser } = res.locals;
+    try {
+      const getCustomer = await Restaurant.findOne({
+        name: infoUser.restaurantID,
+      });
+      next(
+        res.status(200).json({ status: "OK", customer: getCustomer.customer })
+      );
+    } catch (error) {
+      return next(error);
+    }
+  }
+  async EditCustomerById(req, res, next) {
+    const { infoUser } = res.locals;
+    const { id } = req.params;
+    const { name, phone } = req.body;
+    if (!id || !name || !phone) {
+      next(new HandleError({}, "Vui lòng nhập đầy đủ các trường!"));
+    }
+    try {
+      const updateCustomerInRestaurant = await Restaurant.findOneAndUpdate(
+        {
+          customer: {
+            $elemMatch: { _id: id },
+          },
+        },
+        {
+          $set: {
+            "customer.$.name": name,
+            "customer.$.phone": phone,
+          },
+        },
+        { new: true }
+      );
+      return next(res.status(200).json({ message: "Edited" }));
+    } catch (error) {}
+  }
+  async searchUserByText(req, res, next) {
+    const { infoUser } = res.locals;
+    const { text } = req.params;
+    try {
+      const restaurant = await Restaurant.findOne({
+        name: infoUser.restaurantID,
+      });
+      if (!restaurant) {
+        return next(
+          res.status(404).json({ message: "Không tìm thấy nhà hàng." })
+        );
+      }
+      const textPattern = new RegExp(text, "i");
+      const foundUsers = restaurant.user.filter((user) => {
+        const fullName = user.fullName.toLowerCase();
+        if (fullName.includes(text.toLowerCase())) {
+          return true;
+        }
+        const match = fullName.match(textPattern);
+        if (match) {
+          return true;
+        }
+
+        return false;
+      });
+
+      if (foundUsers.length === 0) {
+        return next(
+          res.status(404).json({ message: "Không tìm thấy kết quả tìm kiếm." })
+        );
+      }
+
+      return next(res.status(200).json({ message: "OK", staff: foundUsers }));
+    } catch (error) {
+      return next(error);
     }
   }
 }

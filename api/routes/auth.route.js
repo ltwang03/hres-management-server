@@ -24,4 +24,29 @@ router.delete(
   AuthMiddleWare.CheckAuth,
   AuthController.deleteUser
 );
+router.post(
+  "/post/customer",
+  AuthMiddleWare.CheckAuth,
+  AuthController.createCustomer
+);
+router.delete(
+  "/delete/customer/:id",
+  AuthMiddleWare.CheckAuth,
+  AuthController.deleteCustomer
+);
+router.get(
+  "/get/customers",
+  AuthMiddleWare.CheckAuth,
+  AuthController.getAllCustomerByIdRestaurant
+);
+router.patch(
+  "/patch/customer/:id",
+  AuthMiddleWare.CheckAuth,
+  AuthController.EditCustomerById
+);
+router.get(
+  "/search/customer/:text",
+  AuthMiddleWare.CheckAuth,
+  AuthController.searchUserByText
+);
 module.exports = router;
