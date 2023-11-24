@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   hres-api:
     build:
@@ -6,13 +6,13 @@ services:
     container_name: hres-api
     hostname: hres-api
     ports:
-      - '8080:3000'
+      - "8080:3000"
   nginx:
     build:
       context: ./nginx
     container_name: nginx
     hostname: nginx
     ports:
-      - '80:80'
+      - "80:80"
     depends_on:
       - hres-api
